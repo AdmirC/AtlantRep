@@ -1,0 +1,68 @@
+Instructions how to spin up the created Vagrant VM. 
+
+After the successful installation of Vagrant, it is advisable to create a folder to store all files relevant to your Vagrant VM. For example "vm_vagrant_folder".
+
+If you want to put your folder on your destkop, use the Ubuntu or Windows GUI, or the Ubuntu terminal command:
+
+"mkdir /home/username/Desktop/vm_vagrant_folder"
+
+Now you can copy your existing Vagrantfile into that folder. If you don't have an existing Vagrantfile, you can create a default one
+by using the terminal command: 
+
+"vagrant init"
+
+If you have an existing, fully-configured Vagrantfile, you can start your VM by using the command:
+
+"vagrant up"
+
+from the folder in which your Vagrantfile is. After that, you can normally work with your VM.
+
+If you don't have a configured Vagrantfile, to work with your VM, you first have to choose the box which Vagrant should use. A box is basically an image of a specific OS (with different preinstalled functions). In the VagrantFile which is sent along with this README file, I chose to use the default box of a Ubuntu 12.04 OS (64 bit). This box is called "hashicorp/precise64". I made this choice because ubuntu 12.04 is fast, leightweight and easy to use. To enable Vagrant to use a box, you have to write the name of the chosen box in the line: 
+
+"config.vm.box="" "
+
+as it is done in the Vagrantfile that is sent along with this file. In it, this line looks like:
+
+"config.vm.box="hashicorp/precise64"
+
+Now you can basically work with your VM. Unfortunately, if you would work with your VM now, you would have to manually install anything you want on it. This can be a slow and tedious process. To avoid this, you can make Vagrant do all the work for you by provisioning your VM. For provisioning, I used a simple shell script because the computer which was used for this task doesn't have enough RAM to support provisioning tools like puppet or chef. After writing a script, provisioning is enabled by uncommenting the 
+
+"config.vm.provision" 
+
+line in the Vagrant file and writing down the command: 
+"config.vm.provision :shell, path: "name_of_the_script" ".
+
+I used a script called "Skripta2.sh", so this command looked like:
+
+"config.vm.provision :shell, path: "Skripta2.sh" "
+
+Now your VM is fully operational and provisioned.
+
+For the task to be done correctly, I had to make two other changes to the Vagrantfile as well. First, I enabled port-forwarding by adding the lines:
+
+config.vm.network "forwarded_port", guest: 80, host: 80
+config.vm.network "forwarded_port", guest: 3306, host: 3307
+
+to my Vagrantfile. Those lines enable port-forwarding on the VM. This means they open a port to the host machine, and map it to a port on the VM. This enables access to the web and mysql server which are on the VM, "remotely", from the host machine. First, I mapped the VM's port 80 to an outside port 80. This enables forwarding of http traffic from the host to the VM and vice versa. 
+
+***NOTE: Because a domain name has been asigned to the created website, to be able to access it by using this name from a browser of the host, you have to manually add DNS mappings in the "/etc/hosts" file of the host machine. You can resolve the domain name with the localhost address or with the address of the VM (explained later). If you don't want to go through all this work, you can simply access the website without using its domain name, by typing "127.0.0.1" or "localhost" into your browser.***
+
+To be able to access the mysql server from the host, its original port 3306, has been mapped into the host port 3307.
+
+I also assigned an IP address to the VM. This was accomplished by using the command (uncommenting the line):
+
+config.vm.network "private_network", ip: "192.168.10.10"  
+
+Basically, I have given the VM, the IP address of 192.168.10.10 . This is crucial to enable access to the mysql server from the host. The mysql server can be accessed now by using the command:
+
+"mysql -u username -p password -P 3306 -h 192.168.10.10"
+
+Without this command, the mysql server could only be accessed from outside the VM through a dedicated ssh connection which could be established by using the command:
+
+"ssh vagrant@localhost -p 2222"
+
+After typing the default ssh password of Vagrant (vagrant), a ssh connection would be established and the mysql server could be accessed by writing:
+
+"mysql -u username -p password"
+
+With the explained changes in the Vagrantfile, and by using the script Skripta2.sh, we were able to create the system which was needed to complete the task.
